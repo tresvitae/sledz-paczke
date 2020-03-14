@@ -13,8 +13,8 @@ custom:
     dev: default
     prod: default
   myRegion:
-    dev: eu-west-1
-    prod: eu-west-1
+    dev: us-east-2
+    prod: us-east-2
 
 functions:
   checkPackage:
