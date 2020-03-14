@@ -16,9 +16,34 @@ custom:
     dev: us-east-2
     prod: us-east-2
 
+  snsFanoutTopicName: fanout-topic
+  snsFanoutTopicArn:
+    Fn::Join:
+      - ''
+      - - 'arn:aws:sns:'
+        - Ref: AWS::Region
+        - ":"
+        - Ref: AWS::AccountId
+        - ":"
+        - Fn::GetAtt:
+          - snsFanoutTopic
+          - TopicName
+
 functions:
   checkPackage:
     handler: src/checkPackage/lambda.main
     description: Checks package info on website 
     memorySize: 128
     timeout: 25
+    events:
+      - sns:
+          arn: ${self:custom.snsFanoutTopicArn}
+          topicName: ${self:custom.snsFanoutTopicName}
+
+resources:
+  Resources:
+    snsFanoutTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: "SledzPaczka fan-out topic"
+        TopicName: ${self:custom.snsFanoutTopicName}

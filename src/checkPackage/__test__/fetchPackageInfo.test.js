@@ -6,10 +6,10 @@ const provider = require('../fetchPackageInfo')
 
 describe('Package data provider', () => {
   it('should fetch package info from DHL', async () => {
-    const actual = await provider.fetchPackageInfo('4317584051', 'dhl')
+    const actual = await provider.fetchPackageInfo('21849704628', 'dhl')
     expect(actual).toBeDefined()
     expect(actual.delivered).toBeTruthy()
-    expect(actual.packageId).toBe('4317584051')
+    expect(actual.packageId).toBe('21849704628')
     expect(actual.lastEventDate).toBe('2019-02-18 11:27')
   })
 
