@@ -12,6 +12,14 @@ provider:
         - "sns:Publish"
       Resource:
         - Ref: snsFanoutTopic
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:custom.dynamoTableName}"
 
 custom:
   myStage: ${opt:stage, self:provider.stage}
@@ -19,10 +27,11 @@ custom:
     dev: default
     prod: default
   myRegion:
-    dev: us-east-2
-    prod: us-east-2
+    dev: us-west-2
+    prod: us-west-2
 
   snsFanoutTopicName: fanout-topic
+  dynamoTableName: ${self:service}-${self:custom.myStage}
 
 functions:
   checkPackage:
@@ -30,11 +39,13 @@ functions:
     description: Checks package info on website 
     memorySize: 128
     timeout: 25
+    environment:
+      dynamoTableName: ${self:custom.dynamoTableName}
     events:
       - sns:
           arn: !Ref snsFanoutTopic
           topicName: ${self:custom.snsFanoutTopicName}
-
+          
   activePackages:
     handler: src/activePackages/lambda.main
     description: Pobiera dane z DB i wysyla wiadomosc na Topic Sns o id paczce
@@ -42,6 +53,7 @@ functions:
     timeout: 5
     environment:
       snsFanoutTopicArn: !Ref snsFanoutTopic
+      dynamoTableName: ${self:custom.dynamoTableName}
 
 resources:
   Resources:
@@ -49,4 +61,19 @@ resources:
       Type: AWS::SNS::Topic
       Properties:
         DisplayName: "SledzPaczka fan-out topic"
-        TopicName: ${self:custom.snsFanoutTopicName 
+        TopicName: ${self:custom.snsFanoutTopicName
+
+    DynamoDbTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Delete
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: packageId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: packageId
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:custom.dynamoTableName}
