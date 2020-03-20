@@ -12,6 +12,12 @@ provider:
         - "sns:Publish"
       Resource:
         - Ref: snsFanoutTopic
+    - Effect: "Allow"
+      Action:
+        - "sns:Publish"
+      Resource:
+        - "*"
+    - Effect: Allow
       Action:
         - dynamodb:Query
         - dynamodb:Scan
@@ -62,6 +68,8 @@ functions:
     description: Wysylanie SMS o statusie "SledzPaczka fan-out topic"
     memorySize: 128
     timeout: 5
+    environment:
+      phoneNumber: ${file(secret.yml):phoneNumber}
     events:
       - stream:
           type: dynamodb
