@@ -52,10 +52,22 @@ functions:
     memorySize: 128
     timeout: 5
     environment:
-      snsFanoutTopicArn: !Ref snsFanoutTopic
       dynamoTableName: ${self:custom.dynamoTableName}
+      snsFanoutTopicArn: !Ref snsFanoutTopic
     events:
       - schedule: cron(0 * * * ? *)
+
+  sendSms:
+    handler: src/sendSms/lambda.main
+    description: Wysylanie SMS o statusie "SledzPaczka fan-out topic"
+    memorySize: 128
+    timeout: 5
+    events:
+      - stream:
+          type: dynamodb
+          batchSize: 1
+          startingPosition: LATEST
+          arn: !GetAtt DynamoDbTable.StreamArn
 
 resources:
   Resources:
@@ -79,3 +91,5 @@ resources:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
         TableName: ${self:custom.dynamoTableName}
+        StreamSpecification:
+          StreamViewType: NEW_IMAGE

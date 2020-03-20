@@ -6,10 +6,11 @@ module.exports.update = async (packageId, lastEventDate, message) => {
         TableName: process.env.dynamoTable,
         Key: {packageId },
         //TODO add delivered status
-        UpdateExpression: 'set lastEventDate = :d, message = :m',
+        UpdateExpression: 'set lastEventDate = :d, message = :m, delivered = :k',
         ExpressionAttributeValues: {
             ':d': lastEventDate,
-            ':m': message
+            ':m': message,
+            ':k': delivered
         }
     }
     return dynamodb.update(params).promise().then(console.log(`Package ${packageId} updated on ${lastEventDate} with
